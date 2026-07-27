@@ -1,0 +1,23 @@
+# Raw dataset is too large for GitHub (several GB) and is public.
+# Download it from the BTS source listed in the README.
+Data/Raw/
+Data/SparkInput/
+_DELETE_BEFORE_UPLOAD/
+*.zip
+*.csv.gz
+
+# Lecturer's assignment brief (not our own work)
+Plan/*Group Assignment May 2026*.docx
+
+# Office / OS / editor temp and lock files
+~$*
+.DS_Store
+Thumbs.db
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+
+# Python virtual environments
+venv/
+.venv/
+env/
