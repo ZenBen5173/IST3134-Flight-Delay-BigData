@@ -21,3 +21,8 @@ __pycache__/
 venv/
 .venv/
 env/
+
+# temp working copies and Office lock files
+_to_delete/
+_work*.docx
+~$*.docx
