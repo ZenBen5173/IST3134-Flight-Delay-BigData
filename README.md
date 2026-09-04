@@ -1,63 +1,57 @@
-# US Flight Delay Analysis: one laptop vs. a Spark cluster
+<h1 align="center">US Flight Delay Analysis: one laptop vs. a Spark cluster</h1>
 
-**62 million flights. One laptop running pandas, versus a Spark cluster on AWS, doing the
-exact same analysis.** At what point does "just use a bigger machine" stop working, and you
-actually need the cluster? We built both and measured it.
+<p align="center">
+  62 million flights. pandas on one machine versus PySpark on AWS, doing the same analysis.
+  At what point does "just use a bigger machine" stop working?
+</p>
 
-The analysis itself: over 2015 to 2024, which airports, routes, carriers, and times of day had
-the worst US flight delays, and how did the mix of delay causes shift across the decade? (A
-flight counts as delayed if it arrives 15 minutes or more late.)
+<p align="center">
+  <img src="Output/comparison/cmp_runtime.png" alt="pandas vs PySpark runtime across data scales" width="720">
+</p>
 
-Group assignment for IST3134 Big Data Analytics.
+<p align="center">
+  <img src="https://img.shields.io/badge/rows-62M-4f46e5" alt="62M rows" />
+  <img src="https://img.shields.io/badge/pandas-vs-PySpark-orange" alt="pandas vs PySpark" />
+  <img src="https://img.shields.io/badge/cloud-AWS%20EMR-232f3e" alt="AWS EMR" />
+</p>
+
+## Introduction
+
+A group study for IST3134 Big Data Analytics. The question: over 2015 to 2024, which airports,
+routes, carriers, and times of day had the worst US flight delays, and how did the mix of delay
+causes shift across the decade? We ran the exact same group-by / map-reduce analysis two ways,
+pandas on a single machine and PySpark on a cluster, to find the point where one machine stops
+being enough.
 
 ## The headline result
 
-Same algorithm both ways: a group-by / map-reduce aggregation. At the full 10-year scale
-(~62M rows):
+At the full 10-year scale (~62M rows):
 
 - **pandas on one machine** needed **38.4 GB of memory** and **479 seconds**.
-- **PySpark on a 3-node AWS EMR cluster** finished in **250 seconds**, staying within a bounded
-  ~12 GB per container.
+- **PySpark on a 3-node AWS EMR cluster** finished in **250 seconds**, within a bounded ~12 GB per
+  container.
 
-That gap is the whole point: as the data grows, a single machine hits a memory wall that a
-distributed platform simply does not, which is exactly when the cluster earns its keep.
+Same algorithm both ways. As the data grows, the single machine hits a memory wall the
+distributed platform does not, which is exactly when the cluster earns its keep.
 
----
+## What's in the repo
 
-## Under the hood
+- **`Code/`** – Jupyter notebooks: `01..04` pandas baseline, `05..08` PySpark local
+- **`AWS/`** – Spark jobs for EMR (`2_spark_emr.py`, `3_spark_scaling.py`)
+- **`Output/`** – result tables, charts, and the pandas-vs-Spark comparison figures
+- **`IST3134_Report.pdf`** – the full written report
 
-### The dataset
+## The dataset
 
-US Bureau of Transportation Statistics, "Reporting Carrier On-Time Performance (1987-present)".
-Free, no login, from [transtats.bts.gov](https://www.transtats.bts.gov).
+US Bureau of Transportation Statistics, "Reporting Carrier On-Time Performance", free from
+[transtats.bts.gov](https://www.transtats.bts.gov). 120 monthly files for 2015 to 2024, ~62M
+flights, ~110 columns. The raw data is not in this repo (too large for GitHub); download the
+monthly files from the source.
 
-- One file per month; 2015 to 2024 is 120 monthly files, roughly 62 million flights and ~110
-  columns.
-- The raw data is **not** stored in this repo (too large for GitHub). Download the monthly
-  files from the source above (each is a PREZIP archive named
-  `On_Time_Reporting_Carrier_On_Time_Performance_1987_present_<YEAR>_<MONTH>.zip`).
+## Reproduce it
 
-### Repository structure
-
-- `Code/` Jupyter notebooks
-  - `01_local_1month … 04_local_10year.ipynb`: pandas baseline (single machine)
-  - `05_spark_1month … 08_spark_10year.ipynb`: PySpark (local mode)
-- `AWS/` cloud (Big Data) Spark jobs
-  - `2_spark_emr.py`: Spark job for a single run on EMR (reads from S3)
-  - `3_spark_scaling.py`: Spark job that runs all four scopes and records runtimes
-- `Output/` results and figures
-  - `1month/ 1year/ 5year/ 10year/`: result tables (CSV), charts, and an HTML report per run
-  - `comparison/`: pandas-vs-Spark runtime, memory, and speed-up charts
-  - `aws_*.png`: screenshots evidencing the AWS EMR run
-- `Data/Cleaned/`: small result tables (CSV)
-- `IST3134_Report.docx` / `IST3134_Report.pdf`: the full written report
-
-### How to reproduce
-
-1. Download the monthly data files from the BTS source above into `Data/Raw/` (and upload the
-   same files to an S3 bucket for the AWS run).
-2. Local (pandas): open the `Code/0x_local_*` notebooks and Run All (`pip install pandas matplotlib`).
-3. Local (Spark): open the `Code/0x_spark_*` notebooks (`pip install pyspark pandas matplotlib`,
-   Java 17 required).
-4. Cloud (Spark on AWS): create an EMR cluster (Spark), upload `AWS/3_spark_scaling.py` to S3,
-   then run it as a Spark step with the bucket name as the argument.
+1. Download the monthly files into `Data/Raw/` (and to an S3 bucket for the AWS run).
+2. **Local pandas:** open `Code/0x_local_*` and Run All (`pip install pandas matplotlib`).
+3. **Local Spark:** open `Code/0x_spark_*` (`pip install pyspark pandas matplotlib`, Java 17).
+4. **Cloud Spark:** create an EMR cluster, upload `AWS/3_spark_scaling.py` to S3, run it as a
+   Spark step with the bucket name as the argument.
